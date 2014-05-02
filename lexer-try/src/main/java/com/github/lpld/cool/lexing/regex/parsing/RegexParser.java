@@ -3,6 +3,7 @@ package com.github.lpld.cool.lexing.regex.parsing;
 import com.github.lpld.cool.lexing.regex.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,6 +33,7 @@ public class RegexParser {
     private static final char CLOSE_BRACKET = ']';
     private static final char SINGLE_QUOTE = '\'';
     private static final char UNION = '|';
+    private static final char AT_LEASE_ONE = '+';
     private static final char OPTIONAL = '?';
     private static final char ITERATION = '*';
 
@@ -54,6 +56,46 @@ public class RegexParser {
         }
     }
 
+    private RegularExpression parseUnionOrRange() {
+        if (characters.hasChars(2) && characters.readNext(1) == '-') { // this won't work with escaped characters!
+            return parseRange();
+        } else {
+            return parseUnionGroup();
+        }
+    }
+
+    private RegularExpression parseRange() {
+        List<RegularExpression> range = new ArrayList<>();
+
+        while (characters.hasNext()) {
+
+            if (characters.readNext() == CLOSE_BRACKET || characters.readNext() == CLOSE_PAR) {
+                // means end of group
+                break;
+            }
+
+            // validation needed here
+            char rangeStart = characters.popNext();
+            popAndValidate('-');
+            char rangeEnd = characters.popNext();
+
+            if (rangeStart > rangeEnd) {
+                throw new RegexParseException("Range start " + rangeStart + " is after range end " + rangeEnd);
+            }
+
+
+            for (char c = rangeStart; c <= rangeEnd; c++) {
+                range.add(new SingleCharacter(String.valueOf(c)));
+            }
+        }
+
+        if (range.size() == 1) {
+            return range.get(0);
+        } else {
+            return new Union(range);
+        }
+    }
+
     private RegularExpression parseUnionGroup() {
         List<RegularExpression> regexes = parseGroup();
         // if size == 0 ?
@@ -66,46 +108,66 @@ public class RegexParser {
 
     private List<RegularExpression> parseGroup() {
         List<RegularExpression> regexes = new ArrayList<>();
-        boolean groupFinished = false;
 
-        while (characters.hasNext() && !groupFinished) {
-            char character = characters.readNext();
+        while (characters.hasNext()) {
+
+            if (characters.readNext() == CLOSE_BRACKET || characters.readNext() == CLOSE_PAR) {
+                // means end of group
+                break;
+            }
+
+            char character = characters.popNext();
 
             switch (character) {
                 case OPEN_PAR:
-                    characters.popNext();  // OPEN_PAR
                     regexes.add(parseConcatGroup());
-                    characters.popNext();  // SHOULD BE CLOSE_PAR, validation needed here
+                    popAndValidate(CLOSE_PAR);
                     break;
 
                 case OPEN_BRACKET:
-                    characters.popNext();  // OPEN_BRACKET
-                    regexes.add(parseUnionGroup());
-                    characters.popNext();  // SHOULD BE CLOSE_BRACKET, validation needed here
+                    regexes.add(parseUnionOrRange());
+                    popAndValidate(CLOSE_BRACKET);
                     break;
 
                 case ITERATION:
-                    characters.popNext(); // *
                     // add check if it's not first in group
                     RegularExpression iterated = regexes.remove(regexes.size() - 1);
                     regexes.add(new Iteration(iterated));
                     break;
 
-                case CLOSE_PAR:case CLOSE_BRACKET:
-                    groupFinished = true;
+                case OPTIONAL:
+                    RegularExpression optional = regexes.remove(regexes.size() - 1);
+                    regexes.add(new Union(Arrays.asList(optional, new Epsilon())));
                     break;
+
+                case AT_LEASE_ONE:
+                    RegularExpression atLeastOne = regexes.remove(regexes.size() - 1);
+                    regexes.add(new Concatenation(Arrays.asList(
+                            atLeastOne,
+                            new Iteration(atLeastOne)
+                    )));
+                    break;
+
 
                 // ...
                 default:
-                    regexes.add(aSymbol());
+                    regexes.add(new SingleCharacter(String.valueOf(character)));
             }
         }
 
         return regexes;
     }
 
-    private RegularExpression aSymbol() {
-        char character = characters.popNext();
-        return new SingleCharacter(String.valueOf(character));
+    private void popAndValidate(char c) {
+        if (!characters.hasNext()) {
+            throw new RegexParseException("Character '" + c + "' expected but end of string found");
+        }
+
+        char next = characters.popNext();
+
+        if (next != c) {
+            throw new RegexParseException("Character '" + c + "' expected but '" + next + "' found");
+        }
+
     }
 }

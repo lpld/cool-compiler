@@ -11,7 +11,7 @@ import org.junit.Test;
 public class RegexParserTest {
     @Test
     public void testParse() {
-        RegularExpression regex = new RegexParser("d[abc(ef)*]").parse();
+        RegularExpression regex = new RegexParser("ab[c+d*]").parse();
 
         Assert.assertNotNull(regex);
     }

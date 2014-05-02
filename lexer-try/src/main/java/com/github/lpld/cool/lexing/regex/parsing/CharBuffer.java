@@ -18,7 +18,11 @@ public class CharBuffer {
     }
 
     public char readNext() {
-        return characters[position];
+        return readNext(0);
+    }
+
+    public char readNext(int offset) {
+        return characters[position + offset];
     }
 
     public char popNext() {
@@ -26,6 +30,10 @@ public class CharBuffer {
     }
 
     public boolean hasNext() {
-        return characters.length > position;
+        return hasChars(1);
+    }
+
+    public boolean hasChars(int amount) {
+        return characters.length > position + amount - 1;
     }
 }

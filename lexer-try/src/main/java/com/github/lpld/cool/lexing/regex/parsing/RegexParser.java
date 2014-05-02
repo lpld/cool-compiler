@@ -1,18 +1,16 @@
 package com.github.lpld.cool.lexing.regex.parsing;
 
-import com.github.lpld.cool.lexing.regex.Concatenation;
-import com.github.lpld.cool.lexing.regex.RegularExpression;
-import com.github.lpld.cool.lexing.regex.SingleCharacter;
+import com.github.lpld.cool.lexing.regex.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * A simple parser for simplified regex language.
- * <p>
+ * <p/>
  * 'c' - a character
  * ab - concatenation
- * a|b - union (or)
+ * a|b, [ab] - union (or)
  * a* - iteration
  * a+ = aa* (at least one)
  * [a-z] - range
@@ -30,11 +28,12 @@ public class RegexParser {
 
     private static final char OPEN_PAR = '(';
     private static final char CLOSE_PAR = ')';
+    private static final char OPEN_BRACKET = '[';
+    private static final char CLOSE_BRACKET = ']';
     private static final char SINGLE_QUOTE = '\'';
     private static final char UNION = '|';
     private static final char OPTIONAL = '?';
     private static final char ITERATION = '*';
-
 
 
     public RegexParser(String input) {
@@ -42,11 +41,31 @@ public class RegexParser {
     }
 
     public RegularExpression parse() {
-        return parseGroup();
+        return parseConcatGroup();
     }
 
-    private RegularExpression parseGroup() {
-        List<RegularExpression> concats = new ArrayList<>();
+    private RegularExpression parseConcatGroup() {
+        List<RegularExpression> regexes = parseGroup();
+        // if size == 0 ?
+        if (regexes.size() == 1) {
+            return regexes.get(0);
+        } else {
+            return new Concatenation(regexes);
+        }
+    }
+
+    private RegularExpression parseUnionGroup() {
+        List<RegularExpression> regexes = parseGroup();
+        // if size == 0 ?
+        if (regexes.size() == 1) {
+            return regexes.get(0);
+        } else {
+            return new Union(regexes);
+        }
+    }
+
+    private List<RegularExpression> parseGroup() {
+        List<RegularExpression> regexes = new ArrayList<>();
         boolean groupFinished = false;
 
         while (characters.hasNext() && !groupFinished) {
@@ -54,39 +73,39 @@ public class RegexParser {
 
             switch (character) {
                 case OPEN_PAR:
-                    concats.add(parseEmbeddedGroup());
+                    characters.popNext();  // OPEN_PAR
+                    regexes.add(parseConcatGroup());
+                    characters.popNext();  // SHOULD BE CLOSE_PAR, validation needed here
                     break;
 
-                case CLOSE_PAR:
+                case OPEN_BRACKET:
+                    characters.popNext();  // OPEN_BRACKET
+                    regexes.add(parseUnionGroup());
+                    characters.popNext();  // SHOULD BE CLOSE_BRACKET, validation needed here
+                    break;
+
+                case ITERATION:
+                    characters.popNext(); // *
+                    // add check if it's not first in group
+                    RegularExpression iterated = regexes.remove(regexes.size() - 1);
+                    regexes.add(new Iteration(iterated));
+                    break;
+
+                case CLOSE_PAR:case CLOSE_BRACKET:
                     groupFinished = true;
                     break;
 
                 // ...
                 default:
-                    concats.add(aSymbol());
+                    regexes.add(aSymbol());
             }
         }
 
-        // if size == 0 ?
-        if (concats.size() == 1) {
-            return concats.get(0);
-        } else {
-            return new Concatenation(concats);
-        }
-    }
-
-    private RegularExpression parseEmbeddedGroup() {
-        characters.popNext();  // OPEN_PAR
-
-        RegularExpression embedded = parseGroup();
-
-        characters.popNext(); // SHOULD BE CLOSE_PAR, need size checking here
-        return embedded;
+        return regexes;
     }
 
     private RegularExpression aSymbol() {
         char character = characters.popNext();
         return new SingleCharacter(String.valueOf(character));
-
     }
 }

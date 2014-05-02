@@ -1,5 +1,6 @@
 package com.github.lpld.cool.lexing.regex;
 
+import com.github.lpld.cool.lexing.regex.parsing.RegexParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -10,7 +11,7 @@ import org.junit.Test;
 public class RegexParserTest {
     @Test
     public void testParse() {
-        RegularExpression regex = new RegexParser("(abc)").parse();
+        RegularExpression regex = new RegexParser("d(abc)").parse();
 
         Assert.assertNotNull(regex);
     }

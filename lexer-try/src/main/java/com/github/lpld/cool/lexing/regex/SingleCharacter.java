@@ -14,10 +14,9 @@ public class SingleCharacter implements RegularExpression {
 
     @Override
     public Automaton buildAutomaton() {
-        State start = State.create();
-        State end = State.create();
 
-        start.addTransition(c, end);
+        State end = State.create();
+        State start = State.createWithTransition(c, end);
 
         return new Automaton(start, end);
     }

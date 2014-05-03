@@ -25,7 +25,6 @@ import java.util.List;
 public class RegexParser {
 
     private CharBuffer characters;
-    private int pointer;
 
     private static final char OPEN_PAR = '(';
     private static final char CLOSE_PAR = ')';

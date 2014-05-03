@@ -1,6 +1,7 @@
 package com.github.lpld.cool.lexing.automata;
 
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
@@ -20,17 +21,13 @@ public class State {
     private static long lastId = 0;
 
     private Set<State> epsilonTransitions = new HashSet<>();
-    private Map<String, State> transitions = new HashMap<>();
+
+    // in this model a state has only one transition
+    @Getter
+    private Transition<State> transition;
 
     public void addEpsilonTransition(State state) {
         epsilonTransitions.add(state);
-    }
-
-    public void addTransition(String symbol, State state) {
-        if (transitions.containsKey(symbol)) {
-            throw new IllegalArgumentException("The state already contains transition for symbol " + symbol);
-        }
-        transitions.put(symbol, state);
     }
 
     /**
@@ -38,6 +35,28 @@ public class State {
      */
     public static State create() {
         return new State(lastId++);
+    }
+
+    public static State createWithTransition(String symbol, State transitionTo) {
+        State state = new State(lastId++);
+        state.transition = new Transition<>(symbol, transitionTo);
+        return state;
+    }
+
+    public Set<State> epsilonClosure() {
+        Set<State> epsilonClosure = new HashSet<>();
+        epsilonClosure.add(this);
+        fillEpsilonClosureSet(epsilonClosure);
+        return epsilonClosure;
+    }
+
+    private void fillEpsilonClosureSet(Set<State> epsilonClosure) {
+        for (State epsilonTransition : epsilonTransitions) {
+            if (!epsilonClosure.contains(epsilonTransition)) {
+                epsilonClosure.add(epsilonTransition);
+                epsilonTransition.fillEpsilonClosureSet(epsilonClosure);
+            }
+        }
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.github.lpld.cool.lexing.automata;
+package com.github.lpld.cool.lexing.automata.nfa;
 
 import lombok.RequiredArgsConstructor;
 

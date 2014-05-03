@@ -1,7 +1,7 @@
 package com.github.lpld.cool.lexing.regex;
 
-import com.github.lpld.cool.lexing.automata.Automaton;
-import com.github.lpld.cool.lexing.automata.State;
+import com.github.lpld.cool.lexing.automata.nfa.Automaton;
+import com.github.lpld.cool.lexing.automata.nfa.State;
 
 /**
  * @author leopold

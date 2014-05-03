@@ -1,12 +1,10 @@
-package com.github.lpld.cool.lexing.automata;
+package com.github.lpld.cool.lexing.automata.nfa;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -24,7 +22,7 @@ public class State {
 
     // in this model a state has only one transition
     @Getter
-    private Transition<State> transition;
+    private Transition transition;
 
     public void addEpsilonTransition(State state) {
         epsilonTransitions.add(state);
@@ -39,7 +37,7 @@ public class State {
 
     public static State createWithTransition(String symbol, State transitionTo) {
         State state = new State(lastId++);
-        state.transition = new Transition<>(symbol, transitionTo);
+        state.transition = new Transition(symbol, transitionTo);
         return state;
     }
 

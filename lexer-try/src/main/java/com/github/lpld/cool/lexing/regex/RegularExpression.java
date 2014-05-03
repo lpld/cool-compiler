@@ -1,6 +1,6 @@
 package com.github.lpld.cool.lexing.regex;
 
-import com.github.lpld.cool.lexing.automata.Automaton;
+import com.github.lpld.cool.lexing.automata.nfa.Automaton;
 
 /**
  * @author leopold

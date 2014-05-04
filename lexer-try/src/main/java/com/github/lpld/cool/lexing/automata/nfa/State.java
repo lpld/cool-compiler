@@ -14,6 +14,7 @@ import java.util.Set;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class State {
 
+    @Getter
     private final long id;
 
     private static long lastId = 0;

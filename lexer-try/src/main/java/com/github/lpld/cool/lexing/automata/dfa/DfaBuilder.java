@@ -3,7 +3,11 @@ package com.github.lpld.cool.lexing.automata.dfa;
 import com.github.lpld.cool.lexing.automata.nfa.Automaton;
 import com.github.lpld.cool.lexing.automata.nfa.State;
 import com.github.lpld.cool.lexing.automata.nfa.Transition;
-import lombok.RequiredArgsConstructor;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.Sets;
 
 import java.util.*;
 
@@ -24,17 +28,31 @@ public class DfaBuilder {
     }
 
     public TransitionsTable build() {
-        CompoundState start = new CompoundState(startState.epsilonClosure());
+        CompoundState start = build(startState.epsilonClosure());
 
-        build(start);
+        transitionsTable.setStartState(start);
 
         return transitionsTable;
     }
 
-    private void build(CompoundState state) {
+    private CompoundState build(Set<State> states) {
+        CompoundState state = new CompoundState(Sets.newHashSet(
+                Iterables.transform(states, new Function<State, Long>() {
+                    @Override
+                    public Long apply(State input) {
+                        return input.getId();
+                    }
+                })
+        ), states.contains(endState));
+
+        if (alreadyProcessed.containsKey(state)) {
+            return alreadyProcessed.get(state);
+        } else {
+            alreadyProcessed.put(state, state);
+        }
 
         //getting all transitions inside of the set of states (grouped by transition symbol)
-        Map<String, Collection<Transition>> internal = state.internalTransitions();
+        Map<String, Collection<Transition>> internal = internalTransitions(states);
 
         // iterate over all transitions and calculate the new compound states that
         // a symbol transits to
@@ -48,18 +66,36 @@ public class DfaBuilder {
                 compoundTransitionTo.addAll(transition.getTransitionTo().epsilonClosure());
             }
 
-            CompoundState compound = new CompoundState(compoundTransitionTo);
-
-            // intern compound state
-            if (alreadyProcessed.containsKey(compound)) {
-                compound = alreadyProcessed.get(compound);
-            } else {
-                alreadyProcessed.put(compound, compound);
-                build(compound);
-            }
+            CompoundState compound = build(compoundTransitionTo);
 
             transitionsTable.putTransition(state, symbol, compound);
         }
+
+        return state;
+    }
+
+    private Map<String, Collection<Transition>> internalTransitions(Set<State> states) {
+
+        Iterable<State> withTransitions = Iterables.filter(states, new Predicate<State>() {
+            @Override
+            public boolean apply(State input) {
+                return input.getTransition() != null;
+            }
+        });
+
+        Iterable<Transition> internal = Iterables.transform(withTransitions, new Function<State, Transition>() {
+            @Override
+            public Transition apply(State input) {
+                return input.getTransition();
+            }
+        });
+
+        return Multimaps.index(internal, new Function<Transition, String>() {
+            @Override
+            public String apply(Transition input) {
+                return input.getSymbol();
+            }
+        }).asMap();
     }
 
 }

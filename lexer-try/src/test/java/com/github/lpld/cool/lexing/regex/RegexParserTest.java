@@ -13,7 +13,7 @@ import org.junit.Test;
 public class RegexParserTest {
     @Test
     public void testParse() {
-        RegularExpression regex = new RegexParser("[10]*1").parse();
+        RegularExpression regex = new RegexParser("[abcs]").parse();
 
         Assert.assertNotNull(regex);
 

@@ -3,11 +3,13 @@ package com.github.lpld.cool.lexing.regex;
 import com.github.lpld.cool.lexing.automata.nfa.Automaton;
 import com.github.lpld.cool.lexing.automata.nfa.State;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 /**
  * @author leopold
  * @since 5/1/14
  */
+@ToString
 @RequiredArgsConstructor
 public class SingleCharacter implements RegularExpression {
     private final String c;

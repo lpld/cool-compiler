@@ -42,11 +42,10 @@ public class RegexParser {
     }
 
     public RegularExpression parse() {
-        return parseConcatGroup();
+        return concatenate(parseGroup());
     }
 
-    private RegularExpression parseConcatGroup() {
-        List<RegularExpression> regexes = parseGroup();
+    private RegularExpression concatenate(List<RegularExpression> regexes) {
         // if size == 0 ?
         if (regexes.size() == 1) {
             return regexes.get(0);
@@ -55,11 +54,20 @@ public class RegexParser {
         }
     }
 
+    private RegularExpression union(List<RegularExpression> regexes) {
+        // if size == 0 ?
+        if (regexes.size() == 1) {
+            return regexes.get(0);
+        } else {
+            return new Union(regexes);
+        }
+    }
+
     private RegularExpression parseUnionOrRange() {
         if (characters.hasChars(2) && characters.readNext(1) == '-') { // this won't work with escaped characters!
             return parseRange();
         } else {
-            return parseUnionGroup();
+            return union(parseGroup());
         }
     }
 
@@ -95,16 +103,6 @@ public class RegexParser {
         }
     }
 
-    private RegularExpression parseUnionGroup() {
-        List<RegularExpression> regexes = parseGroup();
-        // if size == 0 ?
-        if (regexes.size() == 1) {
-            return regexes.get(0);
-        } else {
-            return new Union(regexes);
-        }
-    }
-
     private List<RegularExpression> parseGroup() {
         List<RegularExpression> regexes = new ArrayList<>();
 
@@ -119,13 +117,22 @@ public class RegexParser {
 
             switch (character) {
                 case OPEN_PAR:
-                    regexes.add(parseConcatGroup());
+                    regexes.add(concatenate(parseGroup()));
                     popAndValidate(CLOSE_PAR);
                     break;
 
                 case OPEN_BRACKET:
                     regexes.add(parseUnionOrRange());
                     popAndValidate(CLOSE_BRACKET);
+                    break;
+
+                case UNION:
+                    // this can happen only when parsing concat group. additional check to be added
+                    RegularExpression concat = concatenate(new ArrayList<>(regexes));
+                    RegularExpression next = concatenate(parseGroup());
+
+                    regexes.clear();
+                    regexes.add(new Union(Arrays.asList(concat, next)));
                     break;
 
                 case ITERATION:

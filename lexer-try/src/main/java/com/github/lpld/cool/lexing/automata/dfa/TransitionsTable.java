@@ -1,5 +1,6 @@
 package com.github.lpld.cool.lexing.automata.dfa;
 
+import lombok.Getter;
 import lombok.Setter;
 
 import java.util.HashMap;
@@ -11,8 +12,10 @@ import java.util.Map;
  */
 public class TransitionsTable {
     @Setter
+    @Getter
     private CompoundState startState;
 
+    @Getter
     private Map<CompoundState, Map<String, CompoundState>> transitions = new HashMap<>();
 
 

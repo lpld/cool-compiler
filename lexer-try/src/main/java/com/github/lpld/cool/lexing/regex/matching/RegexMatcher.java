@@ -5,9 +5,9 @@ import com.github.lpld.cool.lexing.automata.dfa.DfaBuilder;
 import com.github.lpld.cool.lexing.automata.dfa.TransitionsTable;
 import com.github.lpld.cool.lexing.automata.nfa.Automaton;
 import com.github.lpld.cool.lexing.regex.RegularExpression;
+import com.github.lpld.cool.lexing.chars.CharBuffer;
 import com.github.lpld.cool.lexing.regex.parsing.RegexParser;
 
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -23,18 +23,34 @@ public class RegexMatcher {
         dfaTable = new DfaBuilder(automaton).build();
     }
 
-    public boolean matches(String input) {
+    public boolean match(String input) {
+        return match(new CharBuffer(input)) == input.length() - 1;
+    }
+
+    public int match(CharBuffer input) {
         CompoundState currentState = dfaTable.getStartState();
-        for (char character : input.toCharArray()) {
+        //CompoundState acceptState = null;
+        int matchedIndex = -1;
+
+        for (int i = 0; i < input.length(); i++) {
+
+            char character = input.charAt(i);
             Map<String, CompoundState> transitions = dfaTable.getTransitions().get(currentState);
 
             if (transitions == null || !transitions.containsKey(String.valueOf(character))) {
-                return false;
+                break;
             }
 
             currentState = transitions.get(String.valueOf(character));
+            if (currentState.isAcceptState()) {
+                //acceptState = currentState;
+                matchedIndex = i;
+            }
         }
 
-        return currentState.isAccepts();
+
+        return matchedIndex;
     }
+
+
 }

@@ -14,15 +14,15 @@ public class RegexMatcherTest {
     @Test
     public void testMatching() {
         RegexMatcher aOrB = new RegexMatcher("a|b");
-        assertTrue(aOrB.matches("a"));
-        assertTrue(aOrB.matches("b"));
-        assertFalse(aOrB.matches("ab"));
+        assertTrue(aOrB.match("a"));
+        assertTrue(aOrB.match("b"));
+        assertFalse(aOrB.match("ab"));
 
         RegexMatcher r = new RegexMatcher("[abc]+(qw)*");
-        assertTrue(r.matches("bbccaa"));
-        assertFalse(r.matches("qw"));
-        assertTrue(r.matches("aqw"));
-        assertTrue(r.matches("bqwqw"));
-        assertFalse(r.matches("cqwq"));
+        assertTrue(r.match("bbccaa"));
+        assertFalse(r.match("qw"));
+        assertTrue(r.match("aqw"));
+        assertTrue(r.match("bqwqw"));
+        assertFalse(r.match("cqwq"));
     }
 }

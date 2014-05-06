@@ -1,5 +1,6 @@
 package com.github.lpld.cool.lexing.regex.parsing;
 
+import com.github.lpld.cool.lexing.chars.CharBuffer;
 import com.github.lpld.cool.lexing.regex.*;
 
 import java.util.ArrayList;

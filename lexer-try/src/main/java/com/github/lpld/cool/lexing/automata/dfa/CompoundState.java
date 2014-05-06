@@ -1,6 +1,7 @@
 package com.github.lpld.cool.lexing.automata.dfa;
 
 import lombok.Data;
+import lombok.Getter;
 
 import java.util.Set;
 
@@ -11,5 +12,5 @@ import java.util.Set;
 @Data
 public class CompoundState {
     private final Set<Long> stateIds;
-    private final boolean accepts;
+    private final boolean acceptState;
 }

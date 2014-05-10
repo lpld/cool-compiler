@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum SimpleTokenClass implements TokenClass {
     KEYWORD("if|else"),
+    IDENTIFIER("[a-zA-Z]+"),
     DIGIT("[0-9]");
 
     private final String regex;

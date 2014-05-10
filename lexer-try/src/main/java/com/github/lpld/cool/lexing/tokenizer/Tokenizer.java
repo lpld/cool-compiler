@@ -31,19 +31,26 @@ public class Tokenizer {
     }
 
     private boolean matchToken() {
-        boolean matched = false;
+        Token matched = null;
 
         for (Map.Entry<TokenClass, RegexMatcher> entry : tokenClasses.entrySet()) {
             int matchIndex = entry.getValue().match(input);
 
             if (matchIndex >= 0) {
-                matched = true;
-                String matchedString = input.substring(0, matchIndex).toString();
-                input = input.substring(matchIndex + 1);
-                tokens.add(new Token(entry.getKey(), matchedString));
-                break;
+                if (matched == null || matched.getMatchedString().length() < matchIndex + 1) {
+                    String matchedString = input.substring(0, matchIndex).toString();
+                    matched = new Token(entry.getKey(), matchedString);
+                }
             }
         }
-        return matched;
+
+
+        if (matched == null) {
+            return false;
+        } else {
+            input = input.substring(matched.getMatchedString().length());
+            tokens.add(matched);
+            return true;
+        }
     }
 }
